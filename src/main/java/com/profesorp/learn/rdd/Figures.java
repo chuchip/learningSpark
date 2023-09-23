@@ -8,7 +8,7 @@ import scala.Tuple2;
 import java.io.Serializable;
 import java.util.*;
 
-        public class Figures {
+public class Figures {
     boolean testMode=false;
     JavaSparkContext sc;
     final JavaPairRDD<Integer,Integer> chapterCourseRDD;  // Chapter - Course
@@ -71,7 +71,7 @@ import java.util.*;
             //System.out.println("Views count: " + viewsRDD.count());
         }
         step2();
-        System.out.println("Press <ENTER> to finalize the program. Port 4200 to see spark UI");
+        System.out.println("Press <ENTER> to finalize the program. Port 4040 to see spark UI");
         Scanner scanner= new Scanner(System.in);
         scanner.nextLine();
     }
