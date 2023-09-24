@@ -6,6 +6,8 @@ import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.types.DataTypes;
+
 import static org.apache.spark.sql.functions.*;
 
 import java.io.Serializable;
@@ -33,7 +35,9 @@ public class DataFrames {
 //
      //   filtering();
      //   usingSql();
-        grouping();
+//        grouping();
+//        groupingJava();
+        avgPivotJava();
     }
     void readStudents()
     {
@@ -49,9 +53,7 @@ public class DataFrames {
     }
     void grouping()
     {
-        Dataset<Row> logDS= spark.read().option("header",true)
-                .option("delimiter",",")
-                .csv("src/main/resources/biglog.txt");
+        Dataset<Row> logDS=getBigLog();
         logDS.createOrReplaceTempView("logs_view");
         Arrays.stream(logDS.columns()).forEach(System.out::println);
         //logDS.cache();
@@ -62,6 +64,8 @@ public class DataFrames {
                 "from logs_view group by month,level order by level,month");
         group.show(false);
     }
+
+
     void filtering()
     {
         readStudents();
@@ -78,7 +82,43 @@ public class DataFrames {
         //studentsDS.filter("student_id=1").show();
    //     studentsDS.filter( r -> r.getAs("student_id").equals("1") );
     }
+    void groupingJava()
+    {
+        Dataset<Row> logDS=getBigLog();
+        logDS= logDS.select(
+                date_format(column("datetime"),"yyyyMM").as("yearAndMonth"),
+                column("level")).groupBy("yearAndMonth","level").count()
+                .as("count");
+        logDS.show();
+        //logDS.cache();
+        logDS= logDS.
+                select(concat(substring(column("yearAndMonth"),0,4),lit("-"),
+                        substring(column("yearAndMonth"),5,2)).as("date"),
+                        column("level"),column("count"))
+                .orderBy(column("yearAndMonth").cast(DataTypes.IntegerType),column("level") ) ;
+        logDS.show();
+    }
+    void avgPivotJava()
+    {
+         readStudents();
+         System.out.println(" Get the avg of student by subject and year");
+         studentsDS.groupBy("subject").pivot("year")
+                 .agg( round(avg("score"),2).alias("avg"),
+                         round(max("score"),2).alias("max"),
+                         round(min("score"),2).alias("min") ).show(true);
 
+        System.out.println(" Get the student with the best score");
+         String firstStudent=studentsDS.groupBy("student_id")
+                 .agg(round(avg("score"),4).alias("avg_score"))
+                 .orderBy(desc("avg_score"))
+                 .first().getAs("student_id");
+         studentsDS.filter("student_id="+firstStudent).show();
+    }
+    Dataset<Row>  getBigLog() {
+        return spark.read().option("header", true)
+                .option("delimiter", ",")
+                .csv("src/main/resources/biglog.txt");
+    }
     final static class studentIDFilter implements FilterFunction<Row>, Serializable {
         private static final long serialVersionUID = 17392L;
 
