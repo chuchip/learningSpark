@@ -36,8 +36,10 @@ public class DataFrames {
      //   filtering();
      //   usingSql();
 //        grouping();
-//        groupingJava();
-        avgPivotJava();
+
+//        avgPivotJava();
+//        grouping();
+        groupingJava();
     }
     void readStudents()
     {
@@ -114,6 +116,8 @@ public class DataFrames {
                  .first().getAs("student_id");
          studentsDS.filter("student_id="+firstStudent).show();
     }
+
+
     Dataset<Row>  getBigLog() {
         return spark.read().option("header", true)
                 .option("delimiter", ",")
