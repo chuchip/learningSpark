@@ -1,4 +1,4 @@
-package com.profesorp.learn.rdd;
+package com.profesorp.learn;
 
 
 import org.apache.spark.api.java.function.FilterFunction;
@@ -39,7 +39,8 @@ public class DataFrames {
 
 //        avgPivotJava();
 //        grouping();
-        groupingJava();
+//        groupingJava();
+        udfs();
     }
     void readStudents()
     {
@@ -116,7 +117,18 @@ public class DataFrames {
                  .first().getAs("student_id");
          studentsDS.filter("student_id="+firstStudent).show();
     }
-
+    void udfs()
+    {
+        readStudents();
+        System.out.printf("--- UDF from Datasets ---");
+        spark.udf().register("numberToLiteral",(Integer in) -> in==1?"One":"More than one: "+in,DataTypes.StringType);
+        studentsDS.select(col("student_id"),
+                callUDF("numberToLiteral",col("score").cast(DataTypes.IntegerType)).alias("score_udf"))
+                .show();
+        studentsDS.createOrReplaceTempView("students_view");
+        System.out.printf("--- UDF con SQL ---");
+        spark.sql("select student_id,numberToLiteral(cast(score as int)) as score_udf from students_view").show();
+    }
 
     Dataset<Row>  getBigLog() {
         return spark.read().option("header", true)
