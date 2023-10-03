@@ -11,15 +11,13 @@ import org.apache.spark.sql.types.DataTypes;
 import static org.apache.spark.sql.functions.*;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Scanner;
+import java.util.*;
 
 public class DataFrames {
     Dataset<Row> studentsDS;
     SparkSession spark;
 
     public static void main(String[] args) {
-
         SparkSession spark = SparkSession.builder()
                 .appName("Record transformations")
                 .master("local[*]")
